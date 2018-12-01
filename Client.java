@@ -3,6 +3,9 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
+import java.io.FileOutputStream;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -45,25 +48,32 @@ public class Client {
     }
   }
   public static void receiveFile() throws IOException {
+    ByteArrayOutputStream file = new ByteArrayOutputStream();
+
     int i = 0;
+    int count = 0;
     while (true) {
       byte[] buffer = new byte[256];
       DatagramPacket pkt = new DatagramPacket(buffer, buffer.length, address, port);
       socket.receive(pkt);
-      buffer = pkt.getData();
-      if (pkt.getLength() == 1 && buffer[0] == 0) {
-        System.out.println("Transmissão acabou.");
-        break;
-      }
-      else {
-        Packet packet = new Packet(buffer);
-        if (packet.isValid()) {
-          System.out.println("["+(++i)+"] Pacote válido de tamanho "+pkt.getLength()+" recebido");
-          sendAck(packet.seq);
+      Packet packet = new Packet(util.getDatagramData(pkt));
+      if (packet.isValid()) {
+        System.out.println("["+(++i)+"] Pacote válido de tamanho "+packet.data.length+" recebido");
+        sendAck(packet.seq);
+        if (packet.data.length == 1 && packet.data[0] == 0) {
+          System.out.println("Transmissão acabou. -- "+count);
+          try (OutputStream fileStream = new FileOutputStream("recebido.zip")) {
+            file.writeTo(fileStream);
+          }
+          break;
         }
         else {
-          System.err.println("Pacote inválido recebido "+packet.checksum);
+          count += packet.data.length;
+          file.write(packet.data);
         }
+      }
+      else {
+        System.err.println("Pacote inválido recebido "+packet.checksum);
       }
     }
   }

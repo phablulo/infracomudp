@@ -35,6 +35,7 @@ public class Server {
       port = packet.getPort();
       packet = new DatagramPacket(buf, buf.length, address, port);
       int window_size = util.bytesAsInt(packet.getData());
+      System.out.println("Tamanho da janela escolhido: "+window_size);
       try {
         sendFile(window_size);
       }
@@ -54,11 +55,6 @@ public class Server {
     Window window = new Window(Math.min(window_size+1, parts.length));
     System.out.println(parts.length+" partes para enviar.");
     byte[] last = parts[parts.length-1];
-    System.out.println("Tamanho da última: "+last.length);
-    for (int i = 0; i < last.length; ++i) {
-      System.out.print(last[i]+" ");
-    }
-    System.out.println(" ");
 
     int _seq = 0;
     while (startWindow <= veryend) {
@@ -68,7 +64,7 @@ public class Server {
         byte[] packet = Packet.mount(parts[startWindow + i], _seq);
         DatagramPacket pkt = new DatagramPacket(packet, packet.length, address, port);
         socket.send(pkt);
-        System.out.println("Enviado com sequencia "+(_seq)+" ("+packet.length+")");
+        System.out.println("Enviado com sequencia "+(_seq));
         window.setSentAt(_seq++);
       }
       int seq = waitAck();
@@ -91,11 +87,6 @@ public class Server {
         }
       }
     }
-    // terminou de enviar arquivo. Envia um byte nulo pra avisar que acabou.
-    byte[] fim = new byte[]{0};
-    DatagramPacket pkt = new DatagramPacket(fim, fim.length, address, port);
-    socket.send(pkt);
-    // TODO: aguardar ack e enviar ack pelo cliente
   }
   public static int waitAck() throws IOException {
     byte[] buffer = new byte[8]; // [...checksum, ...seq]

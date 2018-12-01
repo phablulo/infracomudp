@@ -8,25 +8,6 @@ public class Ack {
   public byte[] data;
   public byte[] mounted;
 
-  public static void main(String[] args) throws IOException {
-    Ack a = new Ack(2000);
-    System.out.println(a.isValid());
-    if (!a.isValid()) {
-      System.out.println("Invalid!");
-      System.out.println(a.checksum+"   "+util.checksum(a.data));
-    }
-    // byte[] data = a.mounted;
-    //
-    // for (int i = 0; i < data.length; ++i) {
-    //   System.out.print(data[i]+" ");
-    // }
-    // System.out.println("");
-    //
-    // System.out.println(":: ");
-
-    // Ack b = new Ack(data);
-    // System.out.println(b.isValid());
-  }
   public Ack(byte[] data) {
     this.checksum = util.bytesAsInt(Arrays.copyOfRange(data, 0, 4));
     this.data = Arrays.copyOfRange(data, 4, 8);
@@ -38,18 +19,6 @@ public class Ack {
     this.data = util.intAsBytes(seq);
     this.checksum = util.checksum(this.data);
     this.mounted = mount(this.data, util.intAsBytes(this.checksum));
-
-    // System.out.println(this.checksum);
-    // byte[] s = util.intAsBytes(this.checksum);
-    // for (int i = 0; i < 4; ++i) {
-    //   System.out.print(s[i]+" ");
-    // }
-    // System.out.println("---");
-    // for (int i = 0; i < 4; ++i) {
-    //   System.out.print(this.data[i]+" ");
-    // }
-    // System.out.println("=");
-
   }
 
   public boolean isValid() {
