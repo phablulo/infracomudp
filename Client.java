@@ -27,7 +27,7 @@ public class Client {
       System.err.println("Erro ao criar escutar em 'localhost': "+e.toString());
       System.exit(1);
     }
-    byte[] buf = ByteBuffer.allocate(4).putInt(50).array(); // tamanho da janela
+    byte[] buf = util.intAsBytes(50); // tamanho da janela
     DatagramPacket pkt = new DatagramPacket(buf, buf.length, address, port);
     try {
       socket.send(pkt);
@@ -50,12 +50,32 @@ public class Client {
       byte[] buffer = new byte[256];
       DatagramPacket pkt = new DatagramPacket(buffer, buffer.length, address, port);
       socket.receive(pkt);
-      System.out.println("["+(++i)+"] Pacote de tamanho "+pkt.getLength()+" recebido");
       buffer = pkt.getData();
       if (pkt.getLength() == 1 && buffer[0] == 0) {
         System.out.println("Transmissão acabou.");
         break;
       }
+      else {
+        Packet packet = new Packet(buffer);
+        if (packet.isValid()) {
+          System.out.println("["+(++i)+"] Pacote válido de tamanho "+pkt.getLength()+" recebido");
+          sendAck(packet.seq);
+        }
+        else {
+          System.err.println("Pacote inválido recebido "+packet.checksum);
+        }
+      }
+    }
+  }
+  public static void sendAck(int seq) {
+    try {
+      Ack ack = new Ack(seq);
+      DatagramPacket pkt = new DatagramPacket(ack.mounted, ack.mounted.length, address, port);
+      socket.send(pkt);
+    }
+    catch (IOException e) {
+      System.err.println("Erro ao enviar ack com número de sequência "+seq+": "+e.toString());
+      e.printStackTrace();
     }
   }
 }
