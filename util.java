@@ -1,11 +1,17 @@
-import java.nio.ByteBuffer;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.nio.file.Paths;
+import java.nio.file.Path;
+import java.nio.file.Files;
+import java.io.IOException;
+import java.lang.Math;
+import java.util.Arrays;
 
 public class util {
   public static int checksum(byte[] data) {
     int checksum = 0;
     for (int i = 0, j = data.length; i < j; ++i) {
-      checksum += data[i];
+      checksum += (int)data[i];
     }
     return checksum;
   }
@@ -14,5 +20,20 @@ public class util {
   }
   public static int bytesAsInt(byte[] bytes) {
     return (int)(new BigInteger(bytes).intValue());
+  }
+  public static byte[][] getFileBytes(String filename, int dataPerPacket) throws IOException {
+    Path location = Paths.get(filename);
+    byte[] bytes = Files.readAllBytes(location);
+    int nPartes = (int)Math.ceil(bytes.length / (double)dataPerPacket);
+    byte[][] partes = new byte[nPartes][];
+
+    for (int i = 0; i < nPartes; ++i) {
+      int start = i*dataPerPacket;
+      int end = Math.min(start + dataPerPacket, bytes.length);
+      partes[i] = Arrays.copyOfRange(bytes, start, end);
+    }
+    // partes[nPartes] = new byte[1];
+    // partes[nPartes][0] = 0;
+    return partes;
   }
 }

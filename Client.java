@@ -72,6 +72,7 @@ public class Client {
       Ack ack = new Ack(seq);
       DatagramPacket pkt = new DatagramPacket(ack.mounted, ack.mounted.length, address, port);
       socket.send(pkt);
+      System.out.println("Ack com número de sequência "+seq+" enviado");
     }
     catch (IOException e) {
       System.err.println("Erro ao enviar ack com número de sequência "+seq+": "+e.toString());

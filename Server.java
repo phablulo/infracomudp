@@ -43,34 +43,59 @@ public class Server {
         e.printStackTrace();
         System.exit(1);
       }
+      System.err.println("Arquivo enviado");
       break;
     }
   }
   public static void sendFile(int window_size) throws IOException {
-    byte[] response;
-    for (int i = 0; i < window_size; ++i) {
-      response = Packet.mount(("Teste testando "+i).getBytes(), i);
-      DatagramPacket pkt = new DatagramPacket(response, response.length, address, port);
-      socket.send(pkt);
-      Packet p = new Packet(response);
+    byte[][] parts = util.getFileBytes("teste.zip", 256 - 8);
+    int veryend = parts.length;
+    int startWindow = 0;
+    Window window = new Window(Math.min(window_size+1, parts.length));
+    System.out.println(parts.length+" partes para enviar.");
+    byte[] last = parts[parts.length-1];
+    System.out.println("Tamanho da última: "+last.length);
+    for (int i = 0; i < last.length; ++i) {
+      System.out.print(last[i]+" ");
     }
-    response = new byte[1];
-    response[0] = 0;
-    DatagramPacket pkt = new DatagramPacket(response, response.length, address, port);
-    socket.send(pkt);
+    System.out.println(" ");
 
-    while (true) {
-      int seq = -1;
-      try {
-        seq = waitAck();
+    int _seq = 0;
+    while (startWindow <= veryend) {
+      int wsize = Math.min(veryend - startWindow, window_size);
+      for (int i = 0; i < wsize; ++i) {
+        if (window.sentAt(_seq)) continue;
+        byte[] packet = Packet.mount(parts[startWindow + i], _seq);
+        DatagramPacket pkt = new DatagramPacket(packet, packet.length, address, port);
+        socket.send(pkt);
+        System.out.println("Enviado com sequencia "+(_seq)+" ("+packet.length+")");
+        window.setSentAt(_seq++);
       }
-      catch (IOException e) {
-        System.err.println("Erro ao receber pacote: "+e.toString());
-        e.printStackTrace();
-        System.exit(1);
-      }
+      int seq = waitAck();
       if (seq == -1) continue;
+      window.setAckAt(seq);
+      if (window.ackAt(startWindow)) { // tem ack no início da janela: move
+        if (window.isFull()) {
+          window.clear();
+          startWindow += window_size;
+        }
+        else {
+          int i;
+          for (i = 0; i < window_size; ++i) {
+            if (!window.ackAt(startWindow + i)) {
+              window.clear(startWindow, startWindow + i - 1);
+              startWindow += i;
+              break;
+            }
+          }
+        }
+      }
     }
+    // terminou de enviar arquivo. Envia um byte nulo pra avisar que acabou.
+    byte[] fim = new byte[]{0};
+    DatagramPacket pkt = new DatagramPacket(fim, fim.length, address, port);
+    socket.send(pkt);
+    // TODO: aguardar ack e enviar ack pelo cliente
   }
   public static int waitAck() throws IOException {
     byte[] buffer = new byte[8]; // [...checksum, ...seq]
@@ -78,7 +103,7 @@ public class Server {
     socket.receive(pkt);
     Ack ack = new Ack(pkt.getData());
     if (ack.isValid()) {
-      System.out.println("[OK] Ack recebido com número de sequência "+ack.seq);
+      // System.out.println("[OK] Ack recebido com número de sequência "+ack.seq);
       return ack.seq;
     }
     else {

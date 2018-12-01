@@ -22,8 +22,6 @@ public class Packet {
     this.checksum = util.bytesAsInt(Arrays.copyOfRange(data, 4, 8));
     this.data = Arrays.copyOfRange(data, 8, data.length);
 
-    byte[] c = Arrays.copyOfRange(data, 4, 8);
-
     this.mounted = data;
   }
   public Packet(byte[] data, int seq) throws IOException {
