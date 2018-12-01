@@ -50,7 +50,14 @@ public class Server {
     }
   }
   public static void sendFile(int window_size) throws IOException {
-    byte[] response = "Teste testando".getBytes();
+    byte[] response;
+    for (int i = 0; i < window_size; ++i) {
+      response = ("Teste testando "+i).getBytes();
+      DatagramPacket pkt = new DatagramPacket(response, response.length, address, port);
+      socket.send(pkt);
+    }
+    response = new byte[1];
+    response[0] = 0;
     DatagramPacket pkt = new DatagramPacket(response, response.length, address, port);
     socket.send(pkt);
   }

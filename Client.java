@@ -45,10 +45,17 @@ public class Client {
     }
   }
   public static void receiveFile() throws IOException {
-    byte[] buffer = new byte[256];
-    DatagramPacket pkt = new DatagramPacket(buffer, buffer.length, address, port);
-    socket.receive(pkt);
-    String received = new String(pkt.getData(), 0, pkt.getLength());
-    System.out.println("Resposta: "+received);
+    int i = 0;
+    while (true) {
+      byte[] buffer = new byte[256];
+      DatagramPacket pkt = new DatagramPacket(buffer, buffer.length, address, port);
+      socket.receive(pkt);
+      System.out.println("["+(++i)+"] Pacote de tamanho "+pkt.getLength()+" recebido");
+      buffer = pkt.getData();
+      if (pkt.getLength() == 1 && buffer[0] == 0) {
+        System.out.println("Transmissão acabou.");
+        break;
+      }
+    }
   }
 }
