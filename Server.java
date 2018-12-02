@@ -75,6 +75,9 @@ public class Server {
       int seq = waitAck();
       if (seq == -1) continue;
       window.setAckAt(seq);
+      /** TODO:
+       * E aqui, o TIMEOUT deve ser cancelado!
+       */
       if (window.ackAt(startWindow)) { // tem ack no início da janela: move
         if (window.isFull()) {
           window.clear();
