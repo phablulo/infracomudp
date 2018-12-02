@@ -30,6 +30,17 @@ Na `main`, o server espera por um cliente. Assim que algum cliente manda o taman
 Envia um tamanho de janela pro servidor, depois pega e valida os pacotes recebidos enviando ou não Acks e, no fim, escreve os dados recebidos no disco com o nome `recebido.zip`.
 
 
+### Uso
+pra compilar:
+
+- `javac Client.java`
+- `javac Server.java`
+
+Pra abrir (nessa ordem):
+
+- `java Server`
+- `java Client`
+
 ### Bugs conhecidos
 
 Em Issues.
