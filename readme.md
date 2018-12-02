@@ -41,6 +41,11 @@ Pra abrir (nessa ordem):
 - `java Server`
 - `java Client`
 
+### Falta fazer
+
+- Timeout de pacotes
+- Módulo de descarte
+
 ### Bugs conhecidos
 
 Em Issues.
