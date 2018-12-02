@@ -6,14 +6,15 @@ import java.net.UnknownHostException;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.io.FileOutputStream;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Random;
 
 public class Client {
   public static DatagramSocket socket;
   public static InetAddress address;
   public static final int port = 4445; // server port
+  public static int lossRate = 0;
 
   public static void main(String[] args) {
     try {
@@ -52,10 +53,12 @@ public class Client {
 
     int i = 0;
     int count = 0;
+    Random generator = new Random();
     while (true) {
       byte[] buffer = new byte[256];
       DatagramPacket pkt = new DatagramPacket(buffer, buffer.length, address, port);
       socket.receive(pkt);
+      if (generator.nextInt(99) < lossRate) continue;
       Packet packet = new Packet(util.getDatagramData(pkt));
       if (packet.isValid()) {
         System.out.println("["+(++i)+"] Pacote válido de tamanho "+packet.data.length+" recebido");
