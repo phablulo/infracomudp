@@ -45,6 +45,7 @@ public class Server {
         System.exit(1);
       }
       System.err.println("Arquivo enviado");
+      // Tem um break aqui pra evitar que ele tente enviar novamente.
       break;
     }
   }
@@ -64,6 +65,10 @@ public class Server {
         byte[] packet = Packet.mount(parts[startWindow + i], _seq);
         DatagramPacket pkt = new DatagramPacket(packet, packet.length, address, port);
         socket.send(pkt);
+        /** TODO:
+         * Aqui deve-se iniciar um TIMEOUT. Quando o tempo for atingido, o método
+         *  window.unsetSentAt(_seq) deve ser chamado. Dessa forma, o pacote será reenviado.
+         */
         System.out.println("Enviado com sequencia "+(_seq));
         window.setSentAt(_seq++);
       }

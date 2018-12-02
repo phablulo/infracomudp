@@ -7,22 +7,8 @@ import java.io.IOException;
 import java.lang.Math;
 import java.util.Arrays;
 import java.net.DatagramPacket;
-// import java.io.ByteArrayOutputStream;
-// import java.io.OutputStream;
-// import java.io.FileOutputStream;
 
 public class util {
-  // public static void main(String[] args) throws IOException {
-  //   byte[][] partes = getFileBytes("teste.zip", 255);
-  //   ByteArrayOutputStream file = new ByteArrayOutputStream();
-  //
-  //   for (int i = 0, l = partes.length-1; i < l; ++i) {
-  //     file.write(partes[i]);
-  //   }
-  //   try (OutputStream fileStream = new FileOutputStream("uuu.zip")) {
-  //     file.writeTo(fileStream);
-  //   }
-  // }
   public static int checksum(byte[] data) {
     int checksum = 0;
     for (int i = 0, j = data.length; i < j; ++i) {

@@ -61,7 +61,7 @@ public class Client {
         System.out.println("["+(++i)+"] Pacote válido de tamanho "+packet.data.length+" recebido");
         sendAck(packet.seq);
         if (packet.data.length == 1 && packet.data[0] == 0) {
-          System.out.println("Transmissão acabou. -- "+count);
+          System.out.println("Transmissão acabou. Recebi "+count+" bits.");
           try (OutputStream fileStream = new FileOutputStream("recebido.zip")) {
             file.writeTo(fileStream);
           }
