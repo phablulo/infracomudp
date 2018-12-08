@@ -35,13 +35,13 @@ Funciona assim:
 ### Resumão das classes:
 
 #### Ack
-Métodos lá pra criar e validar Acks
+Métodos pra criar e validar Acks
 
 ### Packet
 Métodos para criar e validar pacotes do arquivo.
 
 ### Window
-É a janela usada pelo algoritmo. Se algum pacote der `TIMEOUT` o método `unsetSentAt` deve ser chamado. Dessa forma o pacote será reenviado.
+É a janela usada pelo algoritmo do Selective Repeat.
 
 ### util
 Coisas úteis como abrir arquivos, transformar inteiros para array de bytes e afins.
@@ -51,6 +51,8 @@ Na `main`, o server espera por um cliente. Assim que algum cliente manda o taman
 
 ### Client
 Envia um tamanho de janela pro servidor, depois pega e valida os pacotes recebidos enviando ou não Acks e, no fim, escreve os dados recebidos no disco com o nome `recebido.zip`.
+
+---
 
 ### Falta
 
