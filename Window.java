@@ -40,7 +40,7 @@ class Window {
     j = j % this.maxSize;
     int k = i;
     while (true) {
-      int km = k % this.maxSize;
+      int km = k++ % this.maxSize;
       this.sent[km] = false;
       this.acks[km] = false;
       if (km == j) {
