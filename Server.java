@@ -2,6 +2,8 @@ import java.net.DatagramSocket;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import java.io.IOException;
 
@@ -9,6 +11,8 @@ public class Server {
   public static DatagramSocket socket;
   public static InetAddress address;
   public static int port; // client port
+  public static Timer timer = new Timer(true);
+  public static int TIMEOUT = 10000;
 
   public static void main(String[] args) {
     try {
@@ -60,36 +64,38 @@ public class Server {
     int _seq = 0;
     while (startWindow <= veryend) {
       int wsize = Math.min(veryend - startWindow, window_size);
+      TimerTask[] timeouts = new TimerTask[wsize];
+
       for (int i = 0; i < wsize; ++i) {
         if (window.sentAt(_seq)) continue;
-        byte[] packet = Packet.mount(parts[startWindow + i], _seq);
-        DatagramPacket pkt = new DatagramPacket(packet, packet.length, address, port);
-        socket.send(pkt);
-        /** TODO:
-         * Aqui deve-se iniciar um TIMEOUT. Quando o tempo for atingido, o método
-         *  window.unsetSentAt(_seq) deve ser chamado. Dessa forma, o pacote será reenviado.
-         */
-        System.out.println("Enviado com sequencia "+(_seq));
+        Sender task = new Sender(_seq, parts[startWindow + i]);
+        task.send();
+        timer.scheduleAtFixedRate(task, TIMEOUT, TIMEOUT);
+        timeouts[_seq % wsize] = task;
         window.setSentAt(_seq++);
       }
-      int seq = waitAck();
-      if (seq == -1) continue;
-      window.setAckAt(seq);
-      /** TODO:
-       * E aqui, o TIMEOUT deve ser cancelado!
-       */
-      if (window.ackAt(startWindow)) { // tem ack no início da janela: move
-        if (window.isFull()) {
-          window.clear();
-          startWindow += window_size;
-        }
-        else {
-          int i;
-          for (i = 0; i < window_size; ++i) {
-            if (!window.ackAt(startWindow + i)) {
-              window.clear(startWindow, startWindow + i - 1);
-              startWindow += i;
-              break;
+
+      // aguarda os acks
+      int j = 0;
+      while (j < wsize) {
+        int seq = waitAck();
+        if (seq == -1) continue;
+        ++j; // chegô!
+        window.setAckAt(seq);
+        timeouts[seq % wsize].cancel(); // cancela o timer!
+        if (window.ackAt(startWindow)) { // tem ack no início da janela: move
+          if (window.isFull()) {
+            window.clear();
+            startWindow += window_size;
+          }
+          else {
+            int i;
+            for (i = 0; i < window_size; ++i) {
+              if (!window.ackAt(startWindow + i)) {
+                window.clear(startWindow, startWindow + i - 1);
+                startWindow += i;
+                break;
+              }
             }
           }
         }
@@ -109,5 +115,33 @@ public class Server {
       System.err.println("[FAIL] Ack inválido recebido com número de sequência "+ack.seq);
     }
     return -1;
+  }
+
+  private static class Sender extends TimerTask {
+    public int seq;
+    public byte[] buffer;
+
+    public Sender(int seq, byte[] buffer) {
+      this.seq = seq;
+      this.buffer = buffer;
+    }
+    public void send() {
+      try {
+        byte[] packet = Packet.mount(this.buffer, this.seq);
+        DatagramPacket pkt = new DatagramPacket(packet, packet.length, address, port);
+        socket.send(pkt);
+        // System.out.println("Enviado com sequencia "+(this.seq));
+      }
+      catch (IOException e) {
+        System.err.println("Excessão ao enviar pacote da sequência "+this.seq+": "+e.toString());
+        e.printStackTrace();
+        send(); // tenta novamente
+      }
+    }
+
+    public void run() {
+      System.err.println("\t(timeout for seq "+this.seq+")");
+      this.send();
+    }
   }
 }
