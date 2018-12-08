@@ -14,7 +14,7 @@ public class Client {
   public static DatagramSocket socket;
   public static InetAddress address;
   public static final int port = 4445; // server port
-  public static int lossRate = 0;
+  public static int lossRate = 10;
   public static int window_size = 50;
 
   public static void main(String[] args) {
@@ -63,10 +63,10 @@ public class Client {
       if (generator.nextInt(99) < lossRate) continue;
       Packet packet = new Packet(util.getDatagramData(pkt));
       if (packet.isValid()) {
-        System.out.println("["+(++i)+"] Pacote válido de tamanho "+packet.data.length+" recebido");
+        System.out.println("["+(++i)+"] Pacote válido de tamanho "+packet.data.length+" e sequência "+packet.seq+" recebido");
         sendAck(packet.seq);
         boolean isLast = packet.data.length == 1 && packet.data[0] == 0;
-        if (window[ packet.seq % window_size ] == null && !isLast) {
+        if (!isLast && window[ packet.seq % window_size ] == null) {
           window[ packet.seq % window_size ] = packet.data;
           count += packet.data.length;
         }

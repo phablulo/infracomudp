@@ -26,15 +26,13 @@ public class util {
     Path location = Paths.get(filename);
     byte[] bytes = Files.readAllBytes(location);
     int nPartes = (int)Math.ceil(bytes.length / (double)dataPerPacket);
-    byte[][] partes = new byte[nPartes+1][];
+    byte[][] partes = new byte[nPartes][];
 
     for (int i = 0; i < nPartes; ++i) {
       int start = i*dataPerPacket;
       int end = Math.min(start + dataPerPacket, bytes.length);
       partes[i] = Arrays.copyOfRange(bytes, start, end);
     }
-    partes[nPartes] = new byte[1];
-    partes[nPartes][0] = 0; // null pra indicar que acabou
     return partes;
   }
   public static byte[] getDatagramData(DatagramPacket packet) {

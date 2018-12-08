@@ -12,7 +12,7 @@ public class Server {
   public static InetAddress address;
   public static int port; // client port
   public static Timer timer = new Timer(true);
-  public static int TIMEOUT = 1000;
+  public static int TIMEOUT = 100;
 
   public static void main(String[] args) {
     try {
@@ -50,7 +50,7 @@ public class Server {
       }
       System.err.println("Arquivo enviado");
       // Tem um break aqui pra evitar que ele tente enviar novamente.
-      break;
+      // break;
     }
   }
   public static void sendFile(int window_size) throws IOException {
@@ -62,7 +62,7 @@ public class Server {
     byte[] last = parts[parts.length-1];
 
     int _seq = 0;
-    while (startWindow <= veryend) {
+    while (startWindow < veryend) {
       int wsize = Math.min(veryend - startWindow, window_size);
       TimerTask[] timeouts = new TimerTask[wsize];
 
@@ -80,7 +80,7 @@ public class Server {
       while (j < wsize) {
         int seq = waitAck();
         if (seq == -1) continue;
-        ++j; // chegô!
+        j += 1; // chegô!
         window.setAckAt(seq);
         timeouts[seq % wsize].cancel(); // cancela o timer!
         if (window.ackAt(startWindow)) { // tem ack no início da janela: move
@@ -89,8 +89,7 @@ public class Server {
             startWindow += window_size;
           }
           else {
-            int i;
-            for (i = 0; i < window_size; ++i) {
+            for (int i = 0; i < window_size; ++i) {
               if (!window.ackAt(startWindow + i)) {
                 window.clear(startWindow, startWindow + i - 1);
                 startWindow += i;
@@ -101,6 +100,18 @@ public class Server {
         }
       }
     }
+    // envia um byte nulo pra indicar que acabou
+    byte[] end = new byte[1];
+    end[0] = 0;
+
+    Sender task = new Sender(_seq, end);
+    task.send();
+    timer.scheduleAtFixedRate(task, TIMEOUT, TIMEOUT);
+    while (true) {
+      int seq = waitAck();
+      if (seq == _seq) break;
+    }
+    task.cancel();
   }
   public static int waitAck() throws IOException {
     byte[] buffer = new byte[8]; // [...checksum, ...seq]
@@ -108,7 +119,7 @@ public class Server {
     socket.receive(pkt);
     Ack ack = new Ack(pkt.getData());
     if (ack.isValid()) {
-      // System.out.println("[OK] Ack recebido com número de sequência "+ack.seq);
+      System.out.println("[OK] Ack recebido com número de sequência "+ack.seq);
       return ack.seq;
     }
     else {
