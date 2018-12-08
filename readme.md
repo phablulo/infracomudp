@@ -5,6 +5,23 @@
 - Taxa de perda de arquivos configurável
 - Selective Repeat
 - Output bonito (não sei se funciona no windows)
+- Apenas um cliente por vez
+
+## Uso
+pra compilar:
+
+- `javac Client.java`
+- `javac Server.java`
+
+Pra abrir (nessa ordem):
+
+- `java Server`
+- `java Client (tamanho da janela) (taxa de perda)`
+
+Não use um tamanho de janela muito alto. Use algo menor que 100. A taxa de perda é a porcentagem de pacotes perdidos, dada entre 0 e 100.
+Não inclua o símbolo de porcentagem.
+
+---
 
 Funciona assim:
 
@@ -32,25 +49,10 @@ Coisas úteis como abrir arquivos, transformar inteiros para array de bytes e af
 ### Server
 Na `main`, o server espera por um cliente. Assim que algum cliente manda o tamanho da janela, ele chama o método `sendFile`. Esse método é o que contém toda a lógica do Selective Repeat. O `sendFile` usa o `waitAck` para ler `Acks` do cliente.
 
-# Client
+### Client
 Envia um tamanho de janela pro servidor, depois pega e valida os pacotes recebidos enviando ou não Acks e, no fim, escreve os dados recebidos no disco com o nome `recebido.zip`.
 
-
-### Uso
-pra compilar:
-
-- `javac Client.java`
-- `javac Server.java`
-
-Pra abrir (nessa ordem):
-
-- `java Server`
-- `java Client (tamanho da janela) (taxa de perda)`
-
-Não use um tamanho de janela muito alto. Use algo menor que 100. A taxa de perda é a porcentagem de pacotes perdidos, dada entre 0 e 100.
-Não inclua o símbolo de porcentagem.
-
-### Falta fazer
+### Falta
 
 - Fazer o número de sequência se repetir, mas ser maior (quantas vezes?) que o tamanho da janela.
 
