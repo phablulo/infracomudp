@@ -43,7 +43,6 @@ Pra abrir (nessa ordem):
 
 ### Falta fazer
 
-- Timeout de pacotes
 - Fazer o número de sequência se repetir, mas ser maior (quantas vezes?) que o tamanho da janela.
 
 ### Bugs conhecidos
