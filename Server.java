@@ -83,7 +83,9 @@ public class Server {
         if (seq == -1) continue;
         j += 1; // chegô!
         window.setAckAt(seq);
-        timeouts[seq % wsize].cancel(); // cancela o timer!
+        if (timeouts[seq % wsize] != null) {
+          timeouts[seq % wsize].cancel(); // cancela o timer!
+        }
         if (window.ackAt(startWindow)) { // tem ack no início da janela: move
           if (window.isFull()) {
             window.clear();
