@@ -1,5 +1,11 @@
 # Infracom UDP
 
+## Características
+- Tamanho de janela configurável
+- Taxa de perda de arquivos configurável
+- Selective Repeat
+- Output bonito (não sei se funciona no windows)
+
 Funciona assim:
 
 1. O cliente abre uma conexão com o servidor e envia um número pra ele. Esse número é o tamanho da janela.
@@ -39,7 +45,10 @@ pra compilar:
 Pra abrir (nessa ordem):
 
 - `java Server`
-- `java Client`
+- `java Client (tamanho da janela) (taxa de perda)`
+
+Não use um tamanho de janela muito alto. Use algo menor que 100. A taxa de perda é a porcentagem de pacotes perdidos, dada entre 0 e 100.
+Não inclua o símbolo de porcentagem.
 
 ### Falta fazer
 
