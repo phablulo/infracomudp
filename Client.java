@@ -15,6 +15,7 @@ public class Client {
   public static InetAddress address;
   public static final int port = 4445; // server port
   public static int lossRate = 0;
+  public static int window_size = 50;
 
   public static void main(String[] args) {
     try {
@@ -31,7 +32,7 @@ public class Client {
       System.err.println("Erro ao criar escutar em 'localhost': "+e.toString());
       System.exit(1);
     }
-    byte[] buf = util.intAsBytes(50); // tamanho da janela
+    byte[] buf = util.intAsBytes(window_size);
     DatagramPacket pkt = new DatagramPacket(buf, buf.length, address, port);
     try {
       socket.send(pkt);
@@ -54,6 +55,7 @@ public class Client {
     int i = 0;
     int count = 0;
     Random generator = new Random();
+    byte[][] window = new byte[window_size][];
     while (true) {
       byte[] buffer = new byte[256];
       DatagramPacket pkt = new DatagramPacket(buffer, buffer.length, address, port);
@@ -63,22 +65,39 @@ public class Client {
       if (packet.isValid()) {
         System.out.println("["+(++i)+"] Pacote válido de tamanho "+packet.data.length+" recebido");
         sendAck(packet.seq);
-        if (packet.data.length == 1 && packet.data[0] == 0) {
-          System.out.println("Transmissão acabou. Recebi "+count+" bits.");
-          try (OutputStream fileStream = new FileOutputStream("recebido.zip")) {
-            file.writeTo(fileStream);
-          }
-          break;
-        }
-        else {
+        boolean isLast = packet.data.length == 1 && packet.data[0] == 0;
+        if (window[ packet.seq % window_size ] == null && !isLast) {
+          window[ packet.seq % window_size ] = packet.data;
           count += packet.data.length;
-          file.write(packet.data);
+        }
+        if (isFull(window) || isLast) {
+          for (int j = 0; j < window_size; ++j) {
+            if (window[j] == null) continue;
+            file.write(window[j]);
+            window[j] = null;
+          }
+          if (isLast) {
+            System.out.println("Transmissão acabou. Recebi "+count+" bits.");
+            try (OutputStream fileStream = new FileOutputStream("recebido.zip")) {
+              file.writeTo(fileStream);
+            }
+            break;
+          }
         }
       }
       else {
         System.err.println("Pacote inválido recebido "+packet.checksum);
       }
     }
+  }
+  public static boolean isFull(byte[][] window) {
+    int length = window.length;
+    for (int i = 0; i < length; ++i) {
+      if (window[i] == null) {
+        return false;
+      }
+    }
+    return true;
   }
   public static void sendAck(int seq) {
     try {

@@ -12,7 +12,7 @@ public class Server {
   public static InetAddress address;
   public static int port; // client port
   public static Timer timer = new Timer(true);
-  public static int TIMEOUT = 10000;
+  public static int TIMEOUT = 1000;
 
   public static void main(String[] args) {
     try {
