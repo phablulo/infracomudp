@@ -18,6 +18,22 @@ public class Client {
   public static int window_size = 50;
 
   public static void main(String[] args) {
+    // configura a partir dos argumentos
+    if (args.length > 0) {
+      window_size = Integer.parseInt(args[0]);
+      if (args.length > 1) {
+        lossRate = Integer.parseInt(args[1]);
+      }
+    }
+    System.out.println("---- Iniciando cliente -----");
+    System.out.println("Certifique-se de que o servidor está aberto ANTES de abrir o cliente.");
+    System.out.println("Uso: java Client (int)tamanho_janela (int)taxaPerda");
+    System.out.println("Os argumentos são opcionais\n\n");
+
+    System.out.println("Tamanho da janela: "+window_size);
+    System.out.println("Taxa de perda: "+lossRate+'%');
+    System.out.println("---- BEGIN -----\n\n\n");
+
     try {
       socket = new DatagramSocket();
     }
@@ -63,7 +79,7 @@ public class Client {
       if (generator.nextInt(99) < lossRate) continue;
       Packet packet = new Packet(util.getDatagramData(pkt));
       if (packet.isValid()) {
-        System.out.println("["+(++i)+"] Pacote válido de tamanho "+packet.data.length+" e sequência "+packet.seq+" recebido");
+        clearPrint("["+(++i)+"] Pacote válido de tamanho "+packet.data.length+" e sequência "+packet.seq+" recebido");
         sendAck(packet.seq);
         boolean isLast = packet.data.length == 1 && packet.data[0] == 0;
         if (!isLast && window[ packet.seq % window_size ] == null) {
@@ -77,7 +93,7 @@ public class Client {
             window[j] = null;
           }
           if (isLast) {
-            System.out.println("Transmissão acabou. Recebi "+count+" bits.");
+            clearPrint("Transmissão acabou. Recebi "+count+" bits.");
             try (OutputStream fileStream = new FileOutputStream("recebido.zip")) {
               file.writeTo(fileStream);
             }
@@ -86,7 +102,7 @@ public class Client {
         }
       }
       else {
-        System.err.println("Pacote inválido recebido "+packet.checksum);
+        clearPrint("Pacote inválido recebido "+packet.checksum);
       }
     }
   }
@@ -99,12 +115,17 @@ public class Client {
     }
     return true;
   }
+  public static void clearPrint(String msg) {
+    System.out.print(String.format("\033[%dA",1)); // Move up
+    System.out.print("\033[2K"); // Erase line content
+    System.out.println(msg);
+  }
   public static void sendAck(int seq) {
     try {
       Ack ack = new Ack(seq);
       DatagramPacket pkt = new DatagramPacket(ack.mounted, ack.mounted.length, address, port);
       socket.send(pkt);
-      System.out.println("Ack com número de sequência "+seq+" enviado");
+      clearPrint("Ack com número de sequência "+seq+" enviado");
     }
     catch (IOException e) {
       System.err.println("Erro ao enviar ack com número de sequência "+seq+": "+e.toString());

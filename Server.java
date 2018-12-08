@@ -27,6 +27,7 @@ public class Server {
     while (true) {
       DatagramPacket packet = new DatagramPacket(buf, buf.length);
       try {
+        System.out.println("Aguardando cliente");
         socket.receive(packet);
       }
       catch (IOException e) {
@@ -39,7 +40,7 @@ public class Server {
       port = packet.getPort();
       packet = new DatagramPacket(buf, buf.length, address, port);
       int window_size = util.bytesAsInt(packet.getData());
-      System.out.println("Tamanho da janela escolhido: "+window_size);
+      System.out.println("Tamanho da janela escolhido: "+window_size+"\n\n");
       try {
         sendFile(window_size);
       }
@@ -48,7 +49,7 @@ public class Server {
         e.printStackTrace();
         System.exit(1);
       }
-      System.err.println("Arquivo enviado");
+      System.err.println("Arquivo enviado\n\n----------\n");
       // Tem um break aqui pra evitar que ele tente enviar novamente.
       // break;
     }
@@ -119,13 +120,18 @@ public class Server {
     socket.receive(pkt);
     Ack ack = new Ack(pkt.getData());
     if (ack.isValid()) {
-      System.out.println("[OK] Ack recebido com número de sequência "+ack.seq);
+      clearPrint("[OK] Ack recebido com número de sequência "+ack.seq);
       return ack.seq;
     }
     else {
       System.err.println("[FAIL] Ack inválido recebido com número de sequência "+ack.seq);
     }
     return -1;
+  }
+  public static void clearPrint(String msg) {
+    System.out.print(String.format("\033[%dA",1)); // Move up
+    System.out.print("\033[2K"); // Erase line content
+    System.out.println(msg);
   }
 
   private static class Sender extends TimerTask {
@@ -151,7 +157,7 @@ public class Server {
     }
 
     public void run() {
-      System.err.println("\t(timeout for seq "+this.seq+")");
+      clearPrint("\t(timeout for seq "+this.seq+")");
       this.send();
     }
   }
