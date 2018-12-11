@@ -14,8 +14,9 @@ public class Client {
   public static DatagramSocket socket;
   public static InetAddress address;
   public static final int port = 4445; // server port
-  public static int lossRate = 10;
+  public static int lossRate = 4;
   public static int window_size = 50;
+  public static String serverIP = "localhost";
 
   public static void main(String[] args) {
     // configura a partir dos argumentos
@@ -23,6 +24,9 @@ public class Client {
       window_size = Integer.parseInt(args[0]);
       if (args.length > 1) {
         lossRate = Integer.parseInt(args[1]);
+        if (args.length > 2) {
+          serverIP = args[2];
+        }
       }
     }
     System.out.println("---- Iniciando cliente -----");
@@ -32,6 +36,7 @@ public class Client {
 
     System.out.println("Tamanho da janela: "+window_size);
     System.out.println("Taxa de perda: "+lossRate+'%');
+    System.out.println("IP do servidor: "+serverIP);
     System.out.println("---- BEGIN -----\n\n\n");
 
     try {
@@ -42,10 +47,10 @@ public class Client {
       System.exit(1);
     }
     try {
-      address = InetAddress.getByName("localhost");
+      address = InetAddress.getByName(serverIP);
     }
     catch (UnknownHostException e) {
-      System.err.println("Erro ao criar escutar em 'localhost': "+e.toString());
+      System.err.println("Erro ao criar escutar em '"+serverIP+"': "+e.toString());
       System.exit(1);
     }
     byte[] buf = util.intAsBytes(window_size);
